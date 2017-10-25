@@ -29,6 +29,10 @@ From the command line
 
     python3 setup.py install
     
+or
+
+    pip install abbreviations
+    
 ### Usage
 
     from abbreviations import schwartz_hearst
