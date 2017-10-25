@@ -5,8 +5,8 @@ Version: 0.1.0
 This is a Python3 implementation of the [Schwartz-Hearst algorithm](https://psb.stanford.edu/psb-online/proceedings/psb03/schwartz.pdf)
 for identifying abbreviations and their corresponding definitions in free text[1].
 
-The original implementation is in Java, and the only Python implementation I found was 
-Vincent Van Asch's Python2 implementation at
+The [original implementation is in Java](http://biotext.berkeley.edu/software.html),  
+and Vincent Van Asch created a Python2 implementation at
 
 http://www.cnts.ua.ac.be/~vincent/scripts/abbreviations.py
 
