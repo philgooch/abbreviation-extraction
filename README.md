@@ -1,8 +1,8 @@
 # Extraction of abbreviation-definition pairs
 
-[![Build Status](https://travis-ci.org/philgooch/abbreviation-extraction.svg)](https://travis-ci.org/philgooch/abbreviation-extraction.svg)
+[![Build Status](https://travis-ci.org/philgooch/abbreviation-extraction.svg)](https://travis-ci.org/philgooch/abbreviation-extraction)
 
-## Version: 0.1.1 
+## Version: 0.1.1
 
 This is a Python3 implementation of the [Schwartz-Hearst algorithm](https://psb.stanford.edu/psb-online/proceedings/psb03/schwartz.pdf)
 for identifying abbreviations and their corresponding definitions in free text[1].
@@ -30,6 +30,10 @@ From the command line
 ## Installation as a module
 
     python3 setup.py install
+    
+or
+
+    pip install abbreviations
     
 ### Usage
 
