@@ -116,18 +116,19 @@ def conditions(candidate):
     :param candidate: candidate abbreviation
     :return: True if this is a good candidate
     """
+    viable = True
     if regex.match('(\p{L}\.?\s?){2,}', candidate.lstrip()):
-        return True
+        viable = True
     if len(candidate) < 2 or len(candidate) > 10:
-        return False
+        viable = False
     if len(candidate.split()) > 2:
-        return False
+        viable = False
     if not regex.search('\p{L}', candidate):
-        return False
+        viable = False
     if not candidate[0].isalnum():
-        return False
+        viable = False
 
-    return True
+    return viable
 
 
 def get_definition(candidate, sentence):
