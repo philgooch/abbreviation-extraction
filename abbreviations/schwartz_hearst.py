@@ -116,7 +116,7 @@ def conditions(candidate):
     :param candidate: candidate abbreviation
     :return: True if this is a good candidate
     """
-    viable = False
+    viable = True
     if regex.match('(\p{L}\.?\s?){2,}', candidate.lstrip()):
         viable = True
     if len(candidate) < 2 or len(candidate) > 10:
