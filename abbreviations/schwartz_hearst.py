@@ -271,23 +271,20 @@ def extract_abbreviation_definition_pairs(file_path=None, doc_text=None):
             for candidate in best_candidates(sentence):
                 try:
                     definition = get_definition(candidate, sentence)
-                except ValueError as e:
+                except (ValueError, IndexError) as e:
                     log.debug("{} Omitting candidate {}. Reason: {}".format(i, candidate, e.args[0]))
                     omit += 1
                 else:
                     try:
                         definition = select_definition(definition, candidate)
-                    except IndexError:
-                        log.debug("{} Omitting definition {} for candidate {}".format(i, definition, candidate))
-                        omit += 1
-                    except ValueError as e:
+                    except (ValueError, IndexError) as e:
                         log.debug("{} Omitting definition {} for candidate {}. Reason: {}".format(i, definition, candidate, e.args[0]))
                         omit += 1
                     else:
                         abbrev_map[candidate] = definition
                         written += 1
-        except ValueError as e:
-            log.debug("Error: {}".format(e.args[0]))
+        except (ValueError, IndexError) as e:
+            log.debug("{} Error processing sentence {}: {}".format(i, sentence, e.args[0]))
     log.debug("{} abbreviations detected and kept ({} omitted)".format(written, omit))
     return abbrev_map
 
