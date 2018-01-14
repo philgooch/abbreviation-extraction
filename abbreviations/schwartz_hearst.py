@@ -20,11 +20,14 @@ log = logging.getLogger(__name__)
 
 
 class Candidate(str):
-    def __new__(cls, start, stop, value):
-        obj = str.__new__(cls, value)
-        obj.start = start
-        obj.stop = stop
-        return obj
+    def __init__(self, value):
+        super().__init__()
+        self.start = 0
+        self.stop = 0
+
+    def set_position(self, start, stop):
+        self.start = start
+        self.stop = stop
 
 
 def yield_lines_from_file(file_path):
@@ -97,7 +100,9 @@ def best_candidates(sentence):
             candidate = sentence[start:stop]
 
             if conditions(candidate):
-                yield Candidate(start, stop, candidate)
+                new_candidate = Candidate(candidate)
+                new_candidate.set_position(start, stop)
+                yield new_candidate
 
 
 def conditions(candidate):
@@ -184,7 +189,9 @@ def get_definition(candidate, sentence):
         stop = stop - len(candidate) + len(candidate.rstrip())
         candidate = sentence[start:stop]
 
-        return Candidate(start, stop, candidate)
+        new_candidate = Candidate(candidate)
+        new_candidate.set_position(start, stop)
+        return new_candidate
 
     else:
         raise ValueError('There are less keys in the tokens in front of candidate than there are in the candidate')
@@ -240,7 +247,9 @@ def select_definition(definition, abbrev):
             else:
                 lindex -= 1
 
-    definition = Candidate(definition.start, definition.stop, definition[lindex:len(definition)])
+    new_candidate = Candidate(definition[lindex:len(definition)])
+    new_candidate.set_position(definition.start, definition.stop)
+    definition = new_candidate
 
     tokens = len(definition.split())
     length = len(abbrev)
