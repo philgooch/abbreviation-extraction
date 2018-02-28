@@ -67,7 +67,7 @@ def best_candidates(sentence):
 
             if openindex == -1: break
 
-            # Look for closing parantheses
+            # Look for closing parentheses
             closeindex = openindex + 1
             open = 1
             skip = False
@@ -279,7 +279,6 @@ def extract_abbreviation_definition_pairs(file_path=None, doc_text=None):
             for candidate in best_candidates(sentence):
                 try:
                     definition = get_definition(candidate, sentence)
-                    log.info(definition)
                 except (ValueError, IndexError) as e:
                     log.debug("{} Omitting candidate {}. Reason: {}".format(i, candidate, e.args[0]))
                     omit += 1
