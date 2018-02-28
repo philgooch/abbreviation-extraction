@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/philgooch/abbreviation-extraction.svg)](https://travis-ci.org/philgooch/abbreviation-extraction)
 
-## Version: 0.1.4
+## Version: 0.1.5
 
 This is a Python3 implementation of the [Schwartz-Hearst algorithm](https://psb.stanford.edu/psb-online/proceedings/psb03/schwartz.pdf)
 for identifying abbreviations and their corresponding definitions in free text[1].
