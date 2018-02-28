@@ -67,7 +67,7 @@ def best_candidates(sentence):
 
             if openindex == -1: break
 
-            # Look for closing parantheses
+            # Look for closing parentheses
             closeindex = openindex + 1
             open = 1
             skip = False
@@ -81,7 +81,7 @@ def best_candidates(sentence):
                     break
                 if char == '(':
                     open += 1
-                elif char == ')':
+                elif char in [')', ';', ':']:
                     open -= 1
                 closeindex += 1
 
@@ -148,8 +148,7 @@ def get_definition(candidate, sentence):
     :return: candidate definition for this abbreviation
     """
     # Take the tokens in front of the candidate
-    tokens = sentence[:candidate.start - 2].lower().split()
-
+    tokens = regex.split(r'[\s\-]', sentence[:candidate.start - 2].lower())
     # the char that we are looking for
     key = candidate[0].lower()
 
