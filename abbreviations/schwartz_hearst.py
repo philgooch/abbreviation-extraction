@@ -81,7 +81,7 @@ def best_candidates(sentence):
                     break
                 if char == '(':
                     open += 1
-                elif char == ')':
+                elif char in [')', ';', ':']:
                     open -= 1
                 closeindex += 1
 
@@ -148,8 +148,7 @@ def get_definition(candidate, sentence):
     :return: candidate definition for this abbreviation
     """
     # Take the tokens in front of the candidate
-    tokens = sentence[:candidate.start - 2].lower().split()
-
+    tokens = regex.split(r'[\s\-]', sentence[:candidate.start - 2].lower())
     # the char that we are looking for
     key = candidate[0].lower()
 
@@ -280,6 +279,7 @@ def extract_abbreviation_definition_pairs(file_path=None, doc_text=None):
             for candidate in best_candidates(sentence):
                 try:
                     definition = get_definition(candidate, sentence)
+                    log.info(definition)
                 except (ValueError, IndexError) as e:
                     log.debug("{} Omitting candidate {}. Reason: {}".format(i, candidate, e.args[0]))
                     omit += 1

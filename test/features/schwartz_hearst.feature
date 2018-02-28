@@ -24,3 +24,16 @@ Feature: Extraction of abbreviations using Schwartz-Hearst algorithm
     Then "RNase P" should be mapped to "Ribonuclease P"
     Then "SDS-PAGE" should be mapped to "sodium dodecyl sulfate-polyacrylamide gel electrophoresis"
     Then "MALDI" should be mapped to "matrix-assisted laser desorption/ionization"
+
+
+    Given Text that I want to extract abbreviations from:
+    """
+    Theory of mind (ToM; Smith 2009) broadly refers to humans’ ability to represent the mental states of others,
+    including their desires, beliefs, and intentions.
+    Applications of text-to-speech (TTS) include:
+    We review astronomy and physics engagement with the
+    Open Researcher and Contributor iD (ORCID) service as a solution.
+    """
+    Then "ToM" should be mapped to "Theory of mind"
+    Then "TTS" should be mapped to "text-to-speech"
+    Then "ORCID" should be mapped to "Open Researcher and Contributor iD"
