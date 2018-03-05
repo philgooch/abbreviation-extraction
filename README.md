@@ -41,8 +41,11 @@ or
     
     pairs = schwartz_hearst.extract_abbreviation_definition_pairs(doc_text='The emergency room (ER) was busy')
     pairs = schwartz_hearst.extract_abbreviation_definition_pairs(file_path='<path_to_file>')
-    
 
+    # when using a longer text, the format is line-separated sentences:
+    import nltk
+    sentences = nltk.sent_tokenize(longer_text)
+    pairs = schwartz_hearst.extract_abbreviation_definition_pairs(doc_text='\n'.join(sentences))
 
 [1] A. Schwartz and M. Hearst (2003) A Simple Algorithm for Identifying Abbreviations Definitions in Biomedical Text.
 Biocomputing, 451-462.
