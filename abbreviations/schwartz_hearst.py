@@ -264,6 +264,17 @@ def select_definition(definition, abbrev):
 
 
 def extract_abbreviation_definition_pairs(file_path=None, doc_text=None):
+    '''    
+    Extracts abbreviations from provided raw text, using the Schwartz-Hearst algorithm. 
+
+    Args:
+        file_path (str): path to raw text, one sentence per line.
+        doc_text  (str): raw text, one sentence per line.
+
+    Returns:
+        dict: the extracted abbreviations (keys: short form; values: long form)
+
+    '''
     abbrev_map = dict()
     omit = 0
     written = 0
