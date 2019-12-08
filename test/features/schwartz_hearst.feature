@@ -9,7 +9,7 @@ Feature: Extraction of abbreviations using Schwartz-Hearst algorithm
     the nuclear envelope (nuclear ER).
     The SH3 domain of Myo5p regulates the
     polymerization of actin through interactions with both Las17p, a homolog of
-    mammalian Wiskott-Aldrich syndrome protein (WASP), and Vrp1p, a homolog of
+    mammalian  Wiskott-Aldrich syndrome protein (WASP), and Vrp1p, a homolog of
     WASP-interacting protein (WIP).
     Ribonuclease P (RNase P) is a ubiquitous endoribonuclease that cleaves precursor
     tRNAs to generate mature 5prime prime or minute termini.

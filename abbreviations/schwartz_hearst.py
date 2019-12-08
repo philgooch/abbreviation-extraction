@@ -148,12 +148,12 @@ def get_definition(candidate, sentence):
     :return: candidate definition for this abbreviation
     """
     # Take the tokens in front of the candidate
-    tokens = regex.split(r'[\s\-]', sentence[:candidate.start - 2].lower())
+    tokens = regex.split(r'[\s\-]+', sentence[:candidate.start - 2].lower())
     # the char that we are looking for
     key = candidate[0].lower()
 
     # Count the number of tokens that start with the same character as the candidate
-    firstchars = [t[0] for t in tokens]
+    firstchars = [t[0] for t in filter(None, tokens)]
 
     definition_freq = firstchars.count(key)
     candidate_freq = candidate.lower().count(key)
