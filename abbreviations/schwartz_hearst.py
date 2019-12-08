@@ -111,7 +111,7 @@ def conditions(candidate):
 
     2 <= len(str) <= 10
     len(tokens) <= 2
-    re.search('\p{L}', str)
+    re.search(r'\p{L}', str)
     str[0].isalnum()
 
     and extra:
@@ -122,13 +122,13 @@ def conditions(candidate):
     :return: True if this is a good candidate
     """
     viable = True
-    if regex.match('(\p{L}\.?\s?){2,}', candidate.lstrip()):
+    if regex.match(r'(\p{L}\.?\s?){2,}', candidate.lstrip()):
         viable = True
     if len(candidate) < 2 or len(candidate) > 10:
         viable = False
     if len(candidate.split()) > 2:
         viable = False
-    if not regex.search('\p{L}', candidate):
+    if not regex.search(r'\p{L}', candidate):
         viable = False
     if not candidate[0].isalnum():
         viable = False
