@@ -111,7 +111,7 @@ def conditions(candidate):
 
     2 <= len(str) <= 10
     len(tokens) <= 2
-    re.search('\p{L}', str)
+    re.search(r'\p{L}', str)
     str[0].isalnum()
 
     and extra:
@@ -122,13 +122,13 @@ def conditions(candidate):
     :return: True if this is a good candidate
     """
     viable = True
-    if regex.match('(\p{L}\.?\s?){2,}', candidate.lstrip()):
+    if regex.match(r'(\p{L}\.?\s?){2,}', candidate.lstrip()):
         viable = True
     if len(candidate) < 2 or len(candidate) > 10:
         viable = False
     if len(candidate.split()) > 2:
         viable = False
-    if not regex.search('\p{L}', candidate):
+    if not regex.search(r'\p{L}', candidate):
         viable = False
     if not candidate[0].isalnum():
         viable = False
@@ -148,12 +148,12 @@ def get_definition(candidate, sentence):
     :return: candidate definition for this abbreviation
     """
     # Take the tokens in front of the candidate
-    tokens = regex.split(r'[\s\-]', sentence[:candidate.start - 2].lower())
+    tokens = regex.split(r'[\s\-]+', sentence[:candidate.start - 2].lower())
     # the char that we are looking for
     key = candidate[0].lower()
 
     # Count the number of tokens that start with the same character as the candidate
-    firstchars = [t[0] for t in tokens]
+    firstchars = [t[0] for t in filter(None, tokens)]
 
     definition_freq = firstchars.count(key)
     candidate_freq = candidate.lower().count(key)
