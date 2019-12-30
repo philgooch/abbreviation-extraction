@@ -60,38 +60,41 @@ def best_candidates(sentence):
         if sentence.find('(') > sentence.find(')'):
             raise ValueError("First parentheses is right: {}".format(sentence))
 
-        closeindex = -1
+        close_index = -1
         while 1:
-            # Look for open parenthesis
-            openindex = sentence.find('(', closeindex + 1)
+            # Look for open parenthesis. Need leading whitespace to avoid matching mathematical and chemical formulae
+            open_index = sentence.find(' (', close_index + 1)
 
-            if openindex == -1: break
+            if open_index == -1: break
+
+            # Advance beyond whitespace
+            open_index += 1
 
             # Look for closing parentheses
-            closeindex = openindex + 1
-            open = 1
+            close_index = open_index + 1
+            open_count = 1
             skip = False
-            while open:
+            while open_count:
                 try:
-                    char = sentence[closeindex]
+                    char = sentence[close_index]
                 except IndexError:
                     # We found an opening bracket but no associated closing bracket
                     # Skip the opening bracket
                     skip = True
                     break
                 if char == '(':
-                    open += 1
+                    open_count += 1
                 elif char in [')', ';', ':']:
-                    open -= 1
-                closeindex += 1
+                    open_count -= 1
+                close_index += 1
 
             if skip:
-                closeindex = openindex + 1
+                close_index = open_index + 1
                 continue
 
             # Output if conditions are met
-            start = openindex + 1
-            stop = closeindex - 1
+            start = open_index + 1
+            stop = close_index - 1
             candidate = sentence[start:stop]
 
             # Take into account whitespace that should be removed
@@ -140,7 +143,7 @@ def get_definition(candidate, sentence):
     """
     Takes a candidate and a sentence and returns the definition candidate.
 
-    The definintion candidate is the set of tokens (in front of the candidate)
+    The definition candidate is the set of tokens (in front of the candidate)
     that starts with a token starting with the first character of the candidate
 
     :param candidate: candidate abbreviation
@@ -153,9 +156,9 @@ def get_definition(candidate, sentence):
     key = candidate[0].lower()
 
     # Count the number of tokens that start with the same character as the candidate
-    firstchars = [t[0] for t in filter(None, tokens)]
+    first_chars = [t[0] for t in filter(None, tokens)]
 
-    definition_freq = firstchars.count(key)
+    definition_freq = first_chars.count(key)
     candidate_freq = candidate.lower().count(key)
 
     # Look for the list of tokens in front of candidate that
@@ -164,22 +167,22 @@ def get_definition(candidate, sentence):
         # we should at least have a good number of starts
         count = 0
         start = 0
-        startindex = len(firstchars) - 1
+        start_index = len(first_chars) - 1
         while count < candidate_freq:
-            if abs(start) > len(firstchars):
-                raise ValueError("candiate {} not found".format(candidate))
+            if abs(start) > len(first_chars):
+                raise ValueError("candidate {} not found".format(candidate))
             start -= 1
             # Look up key in the definition
             try:
-                startindex = firstchars.index(key, len(firstchars) + start)
+                start_index = first_chars.index(key, len(first_chars) + start)
             except ValueError:
                 pass
 
             # Count the number of keys in definition
-            count = firstchars[startindex:].count(key)
+            count = first_chars[start_index:].count(key)
 
         # We found enough keys in the definition so return the definition as a definition candidate
-        start = len(' '.join(tokens[:startindex]))
+        start = len(' '.join(tokens[:start_index]))
         stop = candidate.start - 1
         candidate = sentence[start:stop]
 
@@ -214,39 +217,39 @@ def select_definition(definition, abbrev):
     if abbrev in definition.split():
         raise ValueError('Abbreviation is full word of definition')
 
-    sindex = -1
-    lindex = -1
+    s_index = -1
+    l_index = -1
 
     while 1:
         try:
-            longchar = definition[lindex].lower()
+            long_char = definition[l_index].lower()
         except IndexError:
             raise
 
-        shortchar = abbrev[sindex].lower()
+        short_char = abbrev[s_index].lower()
 
-        if not shortchar.isalnum():
-            sindex -= 1
+        if not short_char.isalnum():
+            s_index -= 1
 
-        if sindex == -1 * len(abbrev):
-            if shortchar == longchar:
-                if lindex == -1 * len(definition) or not definition[lindex - 1].isalnum():
+        if s_index == -1 * len(abbrev):
+            if short_char == long_char:
+                if l_index == -1 * len(definition) or not definition[l_index - 1].isalnum():
                     break
                 else:
-                    lindex -= 1
+                    l_index -= 1
             else:
-                lindex -= 1
-                if lindex == -1 * (len(definition) + 1):
+                l_index -= 1
+                if l_index == -1 * (len(definition) + 1):
                     raise ValueError("definition {} was not found in {}".format(abbrev, definition))
 
         else:
-            if shortchar == longchar:
-                sindex -= 1
-                lindex -= 1
+            if short_char == long_char:
+                s_index -= 1
+                l_index -= 1
             else:
-                lindex -= 1
+                l_index -= 1
 
-    new_candidate = Candidate(definition[lindex:len(definition)])
+    new_candidate = Candidate(definition[l_index:len(definition)])
     new_candidate.set_position(definition.start, definition.stop)
     definition = new_candidate
 

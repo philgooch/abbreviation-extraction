@@ -3,13 +3,13 @@ from setuptools import setup
 setup(
   name = 'abbreviations',
   packages = ['abbreviations'], # this must be the same as the name above
-  version = '0.2.2',
+  version = '0.2.3',
   description = 'Python3 implementation of the Schwartz-Hearst algorithm for extracting abbreviation-definition pairs',
   license = 'MIT',
   author = 'Phil Gooch and Vincent Van Asch',
   author_email = 'philgooch@users.noreply.github.com',
   url = 'https://github.com/philgooch/abbreviation-extraction',
-  download_url = 'https://github.com/philgooch/abbreviation-extraction/archive/v0.2.2.tar.gz',
+  download_url = 'https://github.com/philgooch/abbreviation-extraction/archive/v0.2.3.tar.gz',
   keywords = ['python3', 'nlp', 'keyword-extraction', 'abbreviations', 'information-extraction'],
   classifiers = [],
   install_requires=[
