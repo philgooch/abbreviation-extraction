@@ -1,6 +1,7 @@
 import logging
 import regex
 import sys
+from collections import defaultdict, Counter
 
 """
 A Python 3 refactoring of Vincent Van Asch's Python 2 code at
@@ -266,8 +267,13 @@ def select_definition(definition, abbrev):
     return definition
 
 
-def extract_abbreviation_definition_pairs(file_path=None, doc_text=None):
+def extract_abbreviation_definition_pairs(file_path=None,
+                                          doc_text=None,
+                                          most_common_definition=False,
+                                          first_definition=False):
     abbrev_map = dict()
+    list_abbrev_map = defaultdict(list)
+    counter_abbrev_map = dict()
     omit = 0
     written = 0
     if file_path:
@@ -277,9 +283,14 @@ def extract_abbreviation_definition_pairs(file_path=None, doc_text=None):
     else:
         return abbrev_map
 
+    collect_definitions = False
+    if most_common_definition or first_definition:
+        collect_definitions = True
+
     for i, sentence in sentence_iterator:
         try:
-            for candidate in best_candidates(sentence):
+            # Remove quotes around potential candidate terms
+            for candidate in best_candidates(regex.sub(r'([(])[\'"\p{Pi}]|[\'"\p{Pf}]([);:])', r'\1\2', sentence)):
                 try:
                     definition = get_definition(candidate, sentence)
                 except (ValueError, IndexError) as e:
@@ -292,11 +303,30 @@ def extract_abbreviation_definition_pairs(file_path=None, doc_text=None):
                         log.debug("{} Omitting definition {} for candidate {}. Reason: {}".format(i, definition, candidate, e.args[0]))
                         omit += 1
                     else:
-                        abbrev_map[candidate] = definition
+                        # Either append the current definition to the list of previous definitions ...
+                        if collect_definitions:
+                            list_abbrev_map[candidate].append(definition)
+                        else:
+                            # Or update the abbreviations map with the current definition
+                            abbrev_map[candidate] = definition
                         written += 1
         except (ValueError, IndexError) as e:
             log.debug("{} Error processing sentence {}: {}".format(i, sentence, e.args[0]))
     log.debug("{} abbreviations detected and kept ({} omitted)".format(written, omit))
+
+    # Return most common definition for each term
+    if collect_definitions:
+        if most_common_definition:
+            # Return the most common definition for each term
+            for k,v in list_abbrev_map.items():
+                counter_abbrev_map[k] = Counter(v).most_common(1)[0][0]
+        else:
+            # Return the first definition for each term
+            for k, v in list_abbrev_map.items():
+                counter_abbrev_map[k] = v[0]
+        return counter_abbrev_map
+
+    # Or return the last encountered definition for each term
     return abbrev_map
 
 
