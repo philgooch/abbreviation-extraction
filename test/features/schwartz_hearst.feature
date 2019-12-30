@@ -37,3 +37,10 @@ Feature: Extraction of abbreviations using Schwartz-Hearst algorithm
     Then "ToM" should be mapped to "Theory of mind"
     Then "TTS" should be mapped to "text-to-speech"
     Then "ORCID" should be mapped to "Open Researcher and Contributor iD"
+
+
+    Given Text that does not contain a valid abbreviation:
+    """
+    Bayesian linear regression of actual log(RT)
+    """
+    Then "RT" should be null

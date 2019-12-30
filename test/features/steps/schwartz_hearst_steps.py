@@ -12,3 +12,14 @@ def step_impl(context):
 def step_impl(context, acronym, term):
     actual_result = context.result
     assert_equals(actual_result.get(acronym), term)
+
+
+@given('Text that does not contain a valid abbreviation')
+def step_impl(context):
+    context.result = schwartz_hearst.extract_abbreviation_definition_pairs(doc_text=context.text)
+
+
+@then(u'"{acronym}" should be null')
+def step_impl(context, acronym):
+    actual_result = context.result
+    assert_equals(actual_result.get(acronym), None)
