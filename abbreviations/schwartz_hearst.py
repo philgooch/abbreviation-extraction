@@ -288,11 +288,12 @@ def extract_abbreviation_definition_pairs(file_path=None,
         collect_definitions = True
 
     for i, sentence in sentence_iterator:
+        # Remove any quotes around potential candidate terms
+        clean_sentence = regex.sub(r'([(])[\'"\p{Pi}]|[\'"\p{Pf}]([);:])', r'\1\2', sentence)
         try:
-            # Remove quotes around potential candidate terms
-            for candidate in best_candidates(regex.sub(r'([(])[\'"\p{Pi}]|[\'"\p{Pf}]([);:])', r'\1\2', sentence)):
+            for candidate in best_candidates(clean_sentence):
                 try:
-                    definition = get_definition(candidate, sentence)
+                    definition = get_definition(candidate, clean_sentence)
                 except (ValueError, IndexError) as e:
                     log.debug("{} Omitting candidate {}. Reason: {}".format(i, candidate, e.args[0]))
                     omit += 1
