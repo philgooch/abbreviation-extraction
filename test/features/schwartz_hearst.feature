@@ -33,10 +33,12 @@ Feature: Extraction of abbreviations using Schwartz-Hearst algorithm
     Applications of text-to-speech (TTS) include:
     We review astronomy and physics engagement with the
     Open Researcher and Contributor iD (ORCID) service as a solution.
+    The Proceeds of Crime Act 2002 ("PoCA 2002").
     """
     Then "ToM" should be mapped to "Theory of mind"
     Then "TTS" should be mapped to "text-to-speech"
     Then "ORCID" should be mapped to "Open Researcher and Contributor iD"
+    Then "PoCA 2002" should be mapped to "Proceeds of Crime Act 2002"
 
 
     Given Text that does not contain a valid abbreviation:
