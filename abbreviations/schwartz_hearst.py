@@ -18,6 +18,8 @@ Biocomputing, 2003, pp 451-462.
 
 log = logging.getLogger(__name__)
 
+PREPOSITIONS = regex.compile(r'\b(and|a[st]|[io]n|of|for|the)\b')
+
 
 class Candidate(str):
     def __init__(self, value):
@@ -117,17 +119,17 @@ def conditions(candidate):
     re.search(r'\p{L}', str)
     str[0].isalnum()
 
-    and extra:
-    if it matches (\p{L}\.?\s?){2,}
-    it is a good candidate.
+    Plus:
+    cannot be all lowercase and longer than 7 chars
+    (see https://github.com/philgooch/abbreviation-extraction/issues/25)
 
     :param candidate: candidate abbreviation
     :return: True if this is a good candidate
     """
     viable = True
-    if regex.match(r'(\p{L}\.?\s?){2,}', candidate.lstrip()):
-        viable = True
     if len(candidate) < 2 or len(candidate) > 10:
+        viable = False
+    if regex.match(r'^\p{Ll}{7,}$', candidate):
         viable = False
     if len(candidate.split()) > 2:
         viable = False
@@ -175,6 +177,14 @@ def get_definition(candidate, sentence):
             # Look up key in the definition
             try:
                 start_index = first_chars.index(key, len(first_chars) + start)
+                # Check that the candidate definition does not start with a preposition or conjunction
+                sniffer_start = len(' '.join(tokens[:start_index]))
+                preposition = sentence[sniffer_start:sniffer_start+4].strip()
+                if PREPOSITIONS.match(preposition):
+                    # If it does, rewind
+                    count -= 1
+                    start -= 1
+                    start_index -= 1
             except ValueError:
                 pass
 
@@ -251,7 +261,10 @@ def select_definition(definition, abbrev):
 
     new_candidate = Candidate(definition[l_index:len(definition)])
     new_candidate.set_position(definition.start, definition.stop)
-    definition = new_candidate
+
+    # Check that the new candidate does not start with a preposition or conjunction
+    if not PREPOSITIONS.match(new_candidate):
+        definition = new_candidate
 
     tokens = len(definition.split())
     length = len(abbrev)
