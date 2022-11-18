@@ -16,7 +16,6 @@ Biocomputing, 2003, pp 451-462.
 
 """
 
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 log = logging.getLogger(__name__)
 
 
@@ -332,4 +331,5 @@ def extract_abbreviation_definition_pairs(file_path=None,
 
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     print(extract_abbreviation_definition_pairs(file_path=sys.argv[1]))
