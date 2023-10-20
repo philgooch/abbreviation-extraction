@@ -1,6 +1,7 @@
 import logging
 import regex
 import sys
+from collections import defaultdict, Counter
 
 """
 A Python 3 refactoring of Vincent Van Asch's Python 2 code at
@@ -15,8 +16,9 @@ Biocomputing, 2003, pp 451-462.
 
 """
 
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 log = logging.getLogger(__name__)
+
+PREPOSITIONS = regex.compile(r'\b(and|a[st]|[io]n|of|for|the)\b')
 
 
 class Candidate(str):
@@ -60,38 +62,41 @@ def best_candidates(sentence):
         if sentence.find('(') > sentence.find(')'):
             raise ValueError("First parentheses is right: {}".format(sentence))
 
-        closeindex = -1
+        close_index = -1
         while 1:
-            # Look for open parenthesis
-            openindex = sentence.find('(', closeindex + 1)
+            # Look for open parenthesis. Need leading whitespace to avoid matching mathematical and chemical formulae
+            open_index = sentence.find(' (', close_index + 1)
 
-            if openindex == -1: break
+            if open_index == -1: break
+
+            # Advance beyond whitespace
+            open_index += 1
 
             # Look for closing parentheses
-            closeindex = openindex + 1
-            open = 1
+            close_index = open_index + 1
+            open_count = 1
             skip = False
-            while open:
+            while open_count:
                 try:
-                    char = sentence[closeindex]
+                    char = sentence[close_index]
                 except IndexError:
                     # We found an opening bracket but no associated closing bracket
                     # Skip the opening bracket
                     skip = True
                     break
                 if char == '(':
-                    open += 1
+                    open_count += 1
                 elif char in [')', ';', ':']:
-                    open -= 1
-                closeindex += 1
+                    open_count -= 1
+                close_index += 1
 
             if skip:
-                closeindex = openindex + 1
+                close_index = open_index + 1
                 continue
 
             # Output if conditions are met
-            start = openindex + 1
-            stop = closeindex - 1
+            start = open_index + 1
+            stop = close_index - 1
             candidate = sentence[start:stop]
 
             # Take into account whitespace that should be removed
@@ -111,24 +116,24 @@ def conditions(candidate):
 
     2 <= len(str) <= 10
     len(tokens) <= 2
-    re.search('\p{L}', str)
+    re.search(r'\p{L}', str)
     str[0].isalnum()
 
-    and extra:
-    if it matches (\p{L}\.?\s?){2,}
-    it is a good candidate.
+    Plus:
+    cannot be all lowercase and longer than 7 chars
+    (see https://github.com/philgooch/abbreviation-extraction/issues/25)
 
     :param candidate: candidate abbreviation
     :return: True if this is a good candidate
     """
     viable = True
-    if regex.match('(\p{L}\.?\s?){2,}', candidate.lstrip()):
-        viable = True
     if len(candidate) < 2 or len(candidate) > 10:
+        viable = False
+    if regex.match(r'^\p{Ll}{7,}$', candidate):
         viable = False
     if len(candidate.split()) > 2:
         viable = False
-    if not regex.search('\p{L}', candidate):
+    if not regex.search(r'\p{L}', candidate):
         viable = False
     if not candidate[0].isalnum():
         viable = False
@@ -140,7 +145,7 @@ def get_definition(candidate, sentence):
     """
     Takes a candidate and a sentence and returns the definition candidate.
 
-    The definintion candidate is the set of tokens (in front of the candidate)
+    The definition candidate is the set of tokens (in front of the candidate)
     that starts with a token starting with the first character of the candidate
 
     :param candidate: candidate abbreviation
@@ -148,14 +153,14 @@ def get_definition(candidate, sentence):
     :return: candidate definition for this abbreviation
     """
     # Take the tokens in front of the candidate
-    tokens = regex.split(r'[\s\-]', sentence[:candidate.start - 2].lower())
+    tokens = regex.split(r'[\s\-]+', sentence[:candidate.start - 2].lower())
     # the char that we are looking for
     key = candidate[0].lower()
 
     # Count the number of tokens that start with the same character as the candidate
-    firstchars = [t[0] for t in tokens]
+    first_chars = [t[0] for t in filter(None, tokens)]
 
-    definition_freq = firstchars.count(key)
+    definition_freq = first_chars.count(key)
     candidate_freq = candidate.lower().count(key)
 
     # Look for the list of tokens in front of candidate that
@@ -164,22 +169,30 @@ def get_definition(candidate, sentence):
         # we should at least have a good number of starts
         count = 0
         start = 0
-        startindex = len(firstchars) - 1
+        start_index = len(first_chars) - 1
         while count < candidate_freq:
-            if abs(start) > len(firstchars):
-                raise ValueError("candiate {} not found".format(candidate))
+            if abs(start) > len(first_chars):
+                raise ValueError("candidate {} not found".format(candidate))
             start -= 1
             # Look up key in the definition
             try:
-                startindex = firstchars.index(key, len(firstchars) + start)
+                start_index = first_chars.index(key, len(first_chars) + start)
+                # Check that the candidate definition does not start with a preposition or conjunction
+                sniffer_start = len(' '.join(tokens[:start_index]))
+                preposition = sentence[sniffer_start:sniffer_start+4].strip()
+                if PREPOSITIONS.match(preposition):
+                    # If it does, rewind
+                    count -= 1
+                    start -= 1
+                    start_index -= 1
             except ValueError:
                 pass
 
             # Count the number of keys in definition
-            count = firstchars[startindex:].count(key)
+            count = first_chars[start_index:].count(key)
 
         # We found enough keys in the definition so return the definition as a definition candidate
-        start = len(' '.join(tokens[:startindex]))
+        start = len(' '.join(tokens[:start_index]))
         stop = candidate.start - 1
         candidate = sentence[start:stop]
 
@@ -214,41 +227,44 @@ def select_definition(definition, abbrev):
     if abbrev in definition.split():
         raise ValueError('Abbreviation is full word of definition')
 
-    sindex = -1
-    lindex = -1
+    s_index = -1
+    l_index = -1
 
     while 1:
         try:
-            longchar = definition[lindex].lower()
+            long_char = definition[l_index].lower()
         except IndexError:
             raise
 
-        shortchar = abbrev[sindex].lower()
+        short_char = abbrev[s_index].lower()
 
-        if not shortchar.isalnum():
-            sindex -= 1
+        if not short_char.isalnum():
+            s_index -= 1
 
-        if sindex == -1 * len(abbrev):
-            if shortchar == longchar:
-                if lindex == -1 * len(definition) or not definition[lindex - 1].isalnum():
+        if s_index == -1 * len(abbrev):
+            if short_char == long_char:
+                if l_index == -1 * len(definition) or not definition[l_index - 1].isalnum():
                     break
                 else:
-                    lindex -= 1
+                    l_index -= 1
             else:
-                lindex -= 1
-                if lindex == -1 * (len(definition) + 1):
+                l_index -= 1
+                if l_index == -1 * (len(definition) + 1):
                     raise ValueError("definition {} was not found in {}".format(abbrev, definition))
 
         else:
-            if shortchar == longchar:
-                sindex -= 1
-                lindex -= 1
+            if short_char == long_char:
+                s_index -= 1
+                l_index -= 1
             else:
-                lindex -= 1
+                l_index -= 1
 
-    new_candidate = Candidate(definition[lindex:len(definition)])
+    new_candidate = Candidate(definition[l_index:len(definition)])
     new_candidate.set_position(definition.start, definition.stop)
-    definition = new_candidate
+
+    # Check that the new candidate does not start with a preposition or conjunction
+    if not PREPOSITIONS.match(new_candidate):
+        definition = new_candidate
 
     tokens = len(definition.split())
     length = len(abbrev)
@@ -263,8 +279,13 @@ def select_definition(definition, abbrev):
     return definition
 
 
-def extract_abbreviation_definition_pairs(file_path=None, doc_text=None):
+def extract_abbreviation_definition_pairs(file_path=None,
+                                          doc_text=None,
+                                          most_common_definition=False,
+                                          first_definition=False):
     abbrev_map = dict()
+    list_abbrev_map = defaultdict(list)
+    counter_abbrev_map = dict()
     omit = 0
     written = 0
     if file_path:
@@ -274,11 +295,17 @@ def extract_abbreviation_definition_pairs(file_path=None, doc_text=None):
     else:
         return abbrev_map
 
+    collect_definitions = False
+    if most_common_definition or first_definition:
+        collect_definitions = True
+
     for i, sentence in sentence_iterator:
+        # Remove any quotes around potential candidate terms
+        clean_sentence = regex.sub(r'([(])[\'"\p{Pi}]|[\'"\p{Pf}]([);:])', r'\1\2', sentence)
         try:
-            for candidate in best_candidates(sentence):
+            for candidate in best_candidates(clean_sentence):
                 try:
-                    definition = get_definition(candidate, sentence)
+                    definition = get_definition(candidate, clean_sentence)
                 except (ValueError, IndexError) as e:
                     log.debug("{} Omitting candidate {}. Reason: {}".format(i, candidate, e.args[0]))
                     omit += 1
@@ -289,13 +316,33 @@ def extract_abbreviation_definition_pairs(file_path=None, doc_text=None):
                         log.debug("{} Omitting definition {} for candidate {}. Reason: {}".format(i, definition, candidate, e.args[0]))
                         omit += 1
                     else:
-                        abbrev_map[candidate] = definition
+                        # Either append the current definition to the list of previous definitions ...
+                        if collect_definitions:
+                            list_abbrev_map[candidate].append(definition)
+                        else:
+                            # Or update the abbreviations map with the current definition
+                            abbrev_map[candidate] = definition
                         written += 1
         except (ValueError, IndexError) as e:
             log.debug("{} Error processing sentence {}: {}".format(i, sentence, e.args[0]))
     log.debug("{} abbreviations detected and kept ({} omitted)".format(written, omit))
+
+    # Return most common definition for each term
+    if collect_definitions:
+        if most_common_definition:
+            # Return the most common definition for each term
+            for k,v in list_abbrev_map.items():
+                counter_abbrev_map[k] = Counter(v).most_common(1)[0][0]
+        else:
+            # Return the first definition for each term
+            for k, v in list_abbrev_map.items():
+                counter_abbrev_map[k] = v[0]
+        return counter_abbrev_map
+
+    # Or return the last encountered definition for each term
     return abbrev_map
 
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     print(extract_abbreviation_definition_pairs(file_path=sys.argv[1]))
