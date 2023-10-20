@@ -42,12 +42,17 @@ or
     # By default, the most recently encountered definition for each term is returned
     pairs = schwartz_hearst.extract_abbreviation_definition_pairs(doc_text='The emergency room (ER) was busy')
     pairs = schwartz_hearst.extract_abbreviation_definition_pairs(file_path='<path_to_file>')
-    
+
     # If multiple definitions are encountered for each term, you might want to return the most common for each
     pairs = schwartz_hearst.extract_abbreviation_definition_pairs(doc_text='...', most_common_definition=True)
     
     # ... or you might want to return the first encountered definition for each
     pairs = schwartz_hearst.extract_abbreviation_definition_pairs(doc_text='...', first_definition=True)
+    
+    # when using a longer text, the format is line-separated sentences:
+    import nltk
+    sentences = nltk.sent_tokenize(longer_text)
+    pairs = schwartz_hearst.extract_abbreviation_definition_pairs(doc_text='\n'.join(sentences))
 
 [1] A. Schwartz and M. Hearst (2003) A Simple Algorithm for Identifying Abbreviations Definitions in Biomedical Text.
 Biocomputing, 451-462.
